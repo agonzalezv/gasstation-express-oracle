@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+  <head>
+    <script type="text/javascript" >
+      function loadJSON(callback) {
+        var xobj = new XMLHttpRequest();
+        xobj.overrideMimeType("application/json");
+        xobj.open('GET', './ethgasAPI.json', true);
+        xobj.onreadystatechange = function () {
+          if (xobj.readyState == 4 && xobj.status == "200") {
+            callback(JSON.parse(xobj.responseText));
+          }
+        };
+        xobj.send(null);
+      }
+      loadJSON(function(json) {
+        console.log(json);
+        document.getElementById("container").append(JSON.stringify(json))
+      });
+    </script>
+  </head>
+  <body><span id="container"></span></body>
+</html>

@@ -1,0 +1,12 @@
+[Unit]
+Description=simplehttp
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/gasstation-express-oracle
+ExecStart=/home/ubuntu/gasstation-express-oracle/simpleHTTPServer.py
+
+[Install]
+WantedBy=multi-user.target
