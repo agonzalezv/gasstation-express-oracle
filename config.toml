@@ -1,0 +1,6 @@
+[parity]
+# Kovan Test Network
+chain = "kovan"
+[ui]
+force = false
+disable = true
