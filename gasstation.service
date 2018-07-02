@@ -1,0 +1,12 @@
+[Unit]
+Description=gasstation
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/gasstation-express-oracle
+ExecStart=/home/ubuntu/gasstation-express-oracle/gasExpress.py
+
+[Install]
+WantedBy=multi-user.target

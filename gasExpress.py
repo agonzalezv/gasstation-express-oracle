@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import time
 import sys
 import json
@@ -8,9 +10,7 @@ import pandas as pd
 import numpy as np
 from web3 import Web3, HTTPProvider
 
-
 web3 = Web3(HTTPProvider('http://localhost:8545'))
-
 ### These are the threholds used for % blocks accepting to define the recommended gas prices. can be edited here if desired
 
 SAFELOW = 35
@@ -29,8 +29,8 @@ class Timers():
     def update_time(self, block):
         self.current_block = block
         self.process_block = self.process_block + 1
-    
-    
+
+
 class CleanTx():
     """transaction object / methods for pandas"""
     def __init__(self, tx_obj):
@@ -38,7 +38,7 @@ class CleanTx():
         self.block_mined = tx_obj.blockNumber
         self.gas_price = tx_obj['gasPrice']
         self.round_gp_10gwei()
-        
+
     def to_dataframe(self):
         data = {self.hash: {'block_mined':self.block_mined, 'gas_price':self.gas_price, 'round_gp_10gwei':self.gp_10gwei}}
         return pd.DataFrame.from_dict(data, orient='index')
@@ -59,11 +59,11 @@ class CleanTx():
 class CleanBlock():
     """block object/methods for pandas"""
     def __init__(self, block_obj, timemined, mingasprice=None):
-        self.block_number = block_obj.number 
-        self.time_mined = timemined 
+        self.block_number = block_obj.number
+        self.time_mined = timemined
         self.blockhash = block_obj.hash
         self.mingasprice = mingasprice
-    
+
     def to_dataframe(self):
         data = {0:{'block_number':self.block_number, 'blockhash':self.blockhash, 'time_mined':self.time_mined, 'mingasprice':self.mingasprice}}
         return pd.DataFrame.from_dict(data, orient='index')
@@ -75,7 +75,7 @@ def write_to_json(gprecs, prediction_table):
         prediction_tableout = prediction_table.to_json(orient='records')
         filepath_gprecs = 'ethgasAPI.json'
         filepath_prediction_table = 'predictTable.json'
-        
+
         with open(filepath_gprecs, 'w') as outfile:
             json.dump(gprecs, outfile)
 
@@ -145,7 +145,7 @@ def make_predictTable(block, alltx, hashpower, avg_timemined):
     return(predictTable)
 
 def get_gasprice_recs(prediction_table, block_time, block):
-    
+
     def get_safelow():
         series = prediction_table.loc[prediction_table['hashpower_accepting'] >= SAFELOW, 'gasprice']
         safelow = series.min()
@@ -164,8 +164,8 @@ def get_gasprice_recs(prediction_table, block_time, block):
     def get_fastest():
         hpmax = prediction_table['hashpower_accepting'].max()
         fastest = prediction_table.loc[prediction_table['hashpower_accepting'] == hpmax, 'gasprice'].values[0]
-        return float(fastest) 
-    
+        return float(fastest)
+
     gprecs = {}
     gprecs['safeLow'] = get_safelow()/10
     gprecs['standard'] = get_average()/10
@@ -193,17 +193,17 @@ def master_control():
             block_sumdf = process_block_data(mined_blockdf, block_obj)
             blockdata = blockdata.append(block_sumdf, ignore_index = True)
         print ("done. now reporting gasprice recs in gwei: \n")
-        
+
         print ("\npress ctrl-c at any time to stop monitoring\n")
         print ("**** And the oracle says...**** \n")
-        
 
-        
+
+
     def append_new_tx(clean_tx):
         nonlocal alltx
         if not clean_tx.hash in alltx.index:
             alltx = alltx.append(clean_tx.to_dataframe(), ignore_index = False)
-    
+
     def update_dataframes(block):
         nonlocal alltx
         nonlocal blockdata
@@ -214,11 +214,11 @@ def master_control():
             mined_block_num = block-3
             (mined_blockdf, block_obj) = process_block_transactions(mined_block_num)
             alltx = alltx.combine_first(mined_blockdf)
-           
+
             #process block data
             block_sumdf = process_block_data(mined_blockdf, block_obj)
 
-            #add block data to block dataframe 
+            #add block data to block dataframe
             blockdata = blockdata.append(block_sumdf, ignore_index = True)
 
             #get hashpower table from last 200 blocks
@@ -229,25 +229,25 @@ def master_control():
             gprecs = get_gasprice_recs (predictiondf, block_time, block)
             print(gprecs)
 
-            #every block, write gprecs, predictions    
+            #every block, write gprecs, predictions
             write_to_json(gprecs, predictiondf)
             return True
 
-        except: 
+        except:
             print(traceback.format_exc())
 
     alltx = pd.DataFrame()
     blockdata = pd.DataFrame()
-    timer = Timers(web3.eth.blockNumber)  
+    timer = Timers(web3.eth.blockNumber)
     start_time = time.time()
     init (web3.eth.blockNumber)
-    
+
     while True:
         try:
             block = web3.eth.blockNumber
             if (timer.process_block < block):
                 updated = update_dataframes(timer.process_block)
-                timer.process_block = timer.process_block + 1    
+                timer.process_block = timer.process_block + 1
         except:
             pass
 
